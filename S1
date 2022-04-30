@@ -1,0 +1,284 @@
+//BT
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+BluetoothSerial SerialBT;
+
+
+
+//bibliotecas pantalla
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+
+
+
+//pantalla
+#define OLED_MOSI 26
+#define OLED_CLK 27
+#define OLED_DC 33
+#define OLED_CS 32
+#define OLED_RESET 25
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+////////////////////////
+#define boton 15
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//pulsadores
+
+int px = 0;
+int py = 0;
+//posicion C
+
+int pos = 1;
+int pos2 = 1;
+int DM = 0;
+//idk
+int as = 0;
+int confirmacion = 0;
+int bt=0;
+int sesp=10;
+
+void setup() {
+  //bt
+  SerialBT.begin("noah"); //Bluetooth device name
+  Serial.println("The device started, now you can pair it with bluetooth!");
+
+  Serial.begin(9600);
+  ////////////////////////////////////////////////////////////////////////////////
+  pinMode(34, INPUT);
+
+ 
+
+  pinMode(boton, INPUT);
+  pinMode(12, INPUT);
+
+
+
+
+  display.begin(SSD1306_SWITCHCAPVCC); // Inicia el display OLED
+  display.clearDisplay(); // Borrar imagen en el OLED
+  display.setTextSize(1); // Tamaño del texto
+  display.setTextColor(WHITE); // Definir color del texto (WHITE-BLACK)
+  display.setCursor(25, 15); // Definir posición Columna (25) Fila (15)
+  display.println("OLED SSD1306"); // Carga la información al buffer
+  display.display(); // Actualiza display con datos en Buffer
+  delay(3000); // Demora de 3 segundos.
+  menu();
+
+}
+/////////////////////////////////////////////////////////////////////////////////////
+void menu() {
+  confirmacion += 0;
+
+  display.clearDisplay(); // Borrar imagen en el OLED
+  display.setTextSize(1);
+  display.setCursor(36, 1); // Definir posición Columna (0) Fila (0)
+  display.println("Parcial"); // Carga la información al buffer
+  display.println("1.Sensor A"); // Carga la información al buffer
+  display.println("2.Pulsador"); // Carga la información al buffer
+  display.println("3.sensor Esp "); // Carga la información al buffer
+  display.display();
+
+  px = analogRead(23);      // lectura de valor de eje x
+  py = analogRead(34);     // lectura de valor de eje x
+}
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void SA() {
+  display.clearDisplay(); // Borrar imagen en el OLED
+  delay (200);
+  py = analogRead(34);     // lectura de valor de eje x
+  confirmacion = 1;
+  display.clearDisplay(); // Borrar imagen en el OLED
+  display.setTextSize(1);
+  display.setCursor(20, 1); // Definir posición Columna (0) Fila (0)
+  display.println("Sensor analogico"); // Carga la información al buffer
+  display.setCursor(35, 7); // Definir posición Columna (0) Fila (0)
+  display.println("Leyendo"); // Carga la información al buffer
+
+  display.display();
+  px = analogRead(23);      // lectura de valor de eje x
+  py = analogRead(34);     // lectura de valor de eje x
+  Serial.print("px: ");
+  Serial.print(px);
+  Serial.print("py: ");
+  Serial.println(py);
+ 
+  if (digitalRead(12) == 1) {menu(); confirmacion = 0;}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void pul() {
+  display.clearDisplay(); // Borrar imagen en el OLED
+  delay (200);
+  py = analogRead(34);     // lectura de valor de eje x
+  confirmacion = 2;
+  display.clearDisplay(); // Borrar imagen en el OLED
+  display.setTextSize(1);
+  display.setCursor(35, 1); // Definir posición Columna (0) Fila (0)
+  display.println("Pulsador"); // Carga la información al buffer
+  display.setCursor(35, 7); // Definir posición Columna (0) Fila (0)
+  display.println("Leyendo"); // Carga la información al buffer
+
+  display.display();
+
+  Serial.print("px: ");
+  Serial.print(px);
+  Serial.print("py: ");
+  Serial.println(py);
+  if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+}
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void SESP32() {
+  py = analogRead(34);
+  confirmacion = 3;
+  
+  display.clearDisplay(); // Borrar imagen en el OLED
+  delay (200);
+  display.clearDisplay(); // Borrar imagen en el OLED
+  display.setTextSize(1);
+  display.setCursor(35, 1); // Definir posición Columna (0) Fila (0)
+  display.println("S ESP32"); // Carga la información al buffer
+  display.setCursor(34, 7); // Definir posición Columna (0) Fila (0)
+  display.println("Leyendo"); // Carga la información al buffer
+  display.display();
+
+
+  if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+}
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void loop() {
+
+  Serial.print("px: ");
+  Serial.println(px);
+  Serial.print("py: ");
+  Serial.println(py);
+  Serial.print("BT2: ");
+  Serial.println(digitalRead(12));
+  ////////////////////////////////
+  if (pos == 1) {
+
+    as = 1;
+    py = analogRead(34);
+    display.fillRect(90, 19, 5, 5, BLACK);
+    display.fillRect(90, 27, 5, 5, BLACK);
+    display.fillRect(90, 10, 5, 5, WHITE);
+    display.display();
+    
+    if (py > 4000) {pos++;}
+    if (py < 500) {pos = 3;}
+
+    delay(300);
+    
+    if (digitalRead(boton) == HIGH) {SA();}
+    
+    if (confirmacion == 1) {
+
+      SerialBT.print("E");
+      SerialBT.print(py);
+      SerialBT.print("\n");
+
+    }
+
+    if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+  }
+  /////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////
+  if (pos == 2) {
+    
+    as = 2;
+    py = analogRead(34);  
+    display.fillRect(90, 27, 5, 5, BLACK);
+    display.fillRect(90, 10, 5, 5, BLACK);
+    display.fillRect(90, 19, 5, 5, WHITE);
+    display.display();
+    if (py > 4000) {pos++;}
+    if (py < 500) {pos--;}
+    
+    delay(300);
+    
+    if (digitalRead(boton) == HIGH) {pul();}
+
+    if (confirmacion == 2) {
+    while (digitalRead(boton)==LOW){bt=0;
+      SerialBT.print("E");
+      SerialBT.print(0);
+      SerialBT.print(",");
+      SerialBT.print(bt);
+      SerialBT.print("\n");
+      if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+    }
+    while (digitalRead(boton)==HIGH){bt=10;
+      SerialBT.print("E");
+      SerialBT.print(0);
+      SerialBT.print(",");
+      SerialBT.print(bt);
+      SerialBT.print("\n");
+      if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+      
+     }
+
+     if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+    }
+
+    
+    
+    
+
+  }
+  /////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////
+  if (pos == 3) {
+
+    as = 3;
+    py = analogRead(34);   
+    display.fillRect(90, 19, 5, 5, BLACK);
+    display.fillRect(90, 10, 5, 5, BLACK);
+    display.fillRect(90, 27, 5, 5, WHITE);
+    display.display();
+    
+    if (py > 4000) {pos = 1;}
+    if (py < 500) {pos--;}
+    delay(300);
+    
+    if (pos > 3) {pos = 1;}
+    if (digitalRead(boton) == HIGH) {SESP32();}
+
+    if (digitalRead(12) == HIGH) {menu(); confirmacion = 0;}
+
+
+    if (confirmacion == 3) {
+      sesp = hallRead();
+
+      Serial.print("SESP=");
+      Serial.println(sesp);
+
+      
+      SerialBT.print("E");
+      SerialBT.print(0);
+      SerialBT.print(",");
+      SerialBT.print(0);
+      SerialBT.print(",");
+      SerialBT.print(sesp);
+      SerialBT.print("\n");
+      
+      }
+    
+    
+  }
+
+}
