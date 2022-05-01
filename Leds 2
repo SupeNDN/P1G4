@@ -1,0 +1,96 @@
+#include "BluetoothSerial.h"
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+BluetoothSerial SerialBT;
+String inData;
+
+char receivedChar;// received value will be stored as CHAR in this variable
+
+const int led1 = 19;
+const int led2 = 18;
+const int led3 = 21;
+
+const int canal1PWM = 0;
+const int canal1PWM1 = 1;
+const int canal1PWM2 = 2;
+
+const int frecuencia = 10000;
+const int resolucion = 8;
+
+int led;
+void setup() {
+    Serial.begin(115200);
+  SerialBT.begin("ESP32_Robojax"); //Bluetooth device name
+  Serial.println("The device started, now you can pair it with bluetooth!");
+  ledcSetup(canal1PWM, frecuencia, resolucion);
+  ledcSetup(canal1PWM1, frecuencia, resolucion);
+  ledcSetup(canal1PWM2, frecuencia, resolucion);
+
+  ledcAttachPin(led1, canal1PWM);
+  ledcAttachPin(led2, canal1PWM1);
+  ledcAttachPin(led3, canal1PWM2);
+}
+
+void loop() {
+
+  //Robojax.com Servo with ESP32 Bluetooth
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
+  
+  }
+ if (SerialBT.available()){
+    char led = SerialBT.read();
+    
+  
+    
+    if(led=='A'){
+      int CT = 0;
+      while(CT < 255){
+        ledcWrite(canal1PWM, CT);
+        delay(5);
+        CT++;
+      }
+      CT = 255;
+      while(CT >= 0){
+        ledcWrite(canal1PWM, CT);
+        delay(5);
+        CT--;
+      }
+      inData = ""; // Clear recieved buffer                    
+      }//if (receivedChar
+    if(led=='B'){
+      int CT = 0;
+      while(CT < 255){
+        ledcWrite(canal1PWM1, CT);
+        delay(5);
+        CT++;
+      }
+      CT = 255;
+      while(CT >= 0){
+        ledcWrite(canal1PWM1, CT);
+        delay(5);
+        CT--;
+      }
+    inData = ""; // Clear recieved buffer    
+    }
+    if(led=='C'){
+      int CT = 0;
+      while(CT < 255){
+        ledcWrite(canal1PWM2, CT);
+        delay(5);
+        CT++;
+      }
+      CT = 255;
+      while(CT >= 0){
+        ledcWrite(canal1PWM2, CT);
+        delay(5);
+        CT--;
+      }
+    inData = ""; // Clear recieved buffer    
+    }
+  }
+        delay(20);
+
+}
