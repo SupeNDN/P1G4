@@ -1,0 +1,64 @@
+#include <ESP32Servo.h>
+ Servo servo1;
+int servo1A =90;
+
+int servo1Min =0;
+int servo1Max = 180;
+
+#include "BluetoothSerial.h"
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+BluetoothSerial SerialBT;
+String dato;
+
+char receivedChar;
+
+void setup() {
+  Serial.begin(9600);
+  SerialBT.begin("Mafe"); 
+
+  
+  servo1.attach(21);
+   
+
+}
+
+void loop() {
+
+ 
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
+  
+  }
+  while (SerialBT.available() ) {
+    SerialBT.println("MOTOR");
+    SerialBT.println("Ingresa grados del motor");
+    receivedChar =(char)SerialBT.read();
+    dato += receivedChar;    
+    
+        if (receivedChar == '\n')
+        {    
+    SerialBT.println("Received:");
+ 
+    SerialBT.println(dato);
+
+    Serial.println("Received:");
+    Serial.println(dato);     
+    
+    servo1A = dato.toInt() ;
+    
+    if(servo1A <=servo1Max && servo1A >=servo1Min)
+    {
+      servo1.write(servo1A);  
+    }
+           dato = ""; 
+
+
+  }// while
+
+        //Serial.println(servo1Angle);
+        delay(20);
+  }
+}
